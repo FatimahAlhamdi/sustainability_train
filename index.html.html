@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>قطار الاستدامة</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap');
+        body { font-family: 'Amiri', system-ui; }
+        .train-header { background: linear-gradient(90deg, #10b981, #059669); }
+        .mcq-option { transition: all 0.2s; }
+        .mcq-option:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgb(16 185 129 / 0.3); }
+        .progress-bar { height: 12px; background: #e5e7eb; border-radius: 9999px; overflow: hidden; }
+        .train-icon { animation: train-move 4s linear infinite; }
+        @keyframes train-move { 0% { transform: translateX(-20px); } 100% { transform: translateX(20px); } }
+        .quran-box { background: linear-gradient(135deg, #f8f1e3, #f0e6d2); border: 3px solid #d97706; }
+        .media-wrapper { width:100%; border-radius:1.5rem; overflow:hidden; background:#000; }
+        .media-wrapper img { width:100%; height:260px; object-fit:cover; display:block; }
+        .media-wrapper iframe { width:100%; height:260px; border:none; display:block; }
+        .aspect-video { height:260px; }
+        .media-fallback {
+            width:100%; height:100%; display:flex; flex-direction:column;
+            align-items:center; justify-content:center;
+            background:#1a1a2e; color:#ccc; border-radius:1.5rem;
+            gap:12px; padding:1rem; text-align:center;
+        }
+        .media-fallback a { color:#10b981; text-decoration:underline; font-size:1.1rem; }
+        .media-type-badge { display:inline-flex; align-items:center; gap:6px; font-size:0.85rem; color:#059669; margin-bottom:0.5rem; }
+        
+    </style>
+</head>
+<body class="bg-emerald-50 text-emerald-950">
+
+    <!-- HEADER -->
+    <div class="train-header text-white py-6 shadow-lg">
+        <div class="max-w-6xl mx-auto px-6 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <svg width="60" height="50" viewBox="0 0 60 50" fill="none" xmlns="http://www.w3.org/2000/svg" class="train-icon">
+                    <rect x="5" y="15" width="50" height="25" rx="5" fill="#fff" stroke="#10b981" stroke-width="4"/>
+                    <circle cx="18" cy="40" r="8" fill="#10b981" stroke="#fff" stroke-width="4"/>
+                    <circle cx="42" cy="40" r="8" fill="#10b981" stroke="#fff" stroke-width="4"/>
+                </svg>
+                <div>
+                    <h1 class="text-4xl font-bold tracking-widest">قطار الاستدامة</h1>
+                    <p class="text-emerald-100 text-sm">رحلة عبر تاريخ الاستدامة في دولة الإمارات 1971-2026</p>
+                </div>
+            </div>
+            <div class="text-right">
+                <div class="flex gap-2 justify-end">
+                    <div class="bg-white/20 px-4 py-1 rounded-3xl text-xs">مدرسة مضب للبنات C3</div>
+                    <div class="bg-white/20 px-4 py-1 rounded-3xl text-xs">برعاية الأستاذة فاطمة الحمدي</div>
+                </div>
+            </div>
+            <div class="text-5xl">🇦🇪🚂</div>
+        </div>
+    </div>
+
+    <!-- START SCREEN -->
+    <div id="start-screen" class="max-w-4xl mx-auto px-6 py-12 text-center">
+        <div class="bg-white rounded-3xl shadow-2xl p-12">
+            <div class="text-8xl mb-6 animate-bounce">🚂</div>
+            <h2 class="text-5xl font-bold text-emerald-700 mb-4">مرحباً بكِ في قطار الاستدامة!</h2>
+            <p class="text-xl text-emerald-600 mb-10">رحلة تعليمية ممتعة عبر 10 محطات من تاريخ الإمارات</p>
+            <input id="student-name" type="text" placeholder="اسم الطالبة"
+                   class="w-full max-w-md mx-auto block px-8 py-5 text-2xl text-center rounded-3xl border-2 border-emerald-300 focus:border-emerald-500 outline-none">
+            <button onclick="startJourney()"
+                    class="mt-10 bg-emerald-600 hover:bg-emerald-700 text-white text-2xl font-bold px-16 py-6 rounded-3xl shadow-xl flex items-center gap-4 mx-auto transition">
+                ابدئي الرحلة الآن <i class="fas fa-train"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- JOURNEY SCREEN -->
+    <div id="journey-screen" class="hidden max-w-6xl mx-auto px-6 py-8">
+        <div class="flex items-center gap-4 mb-8">
+            <div class="flex-1 text-emerald-700">المحطة <span id="current-stop-num" class="text-4xl font-bold">1</span> / 10</div>
+            <div class="flex-1 progress-bar"><div id="progress-fill" class="h-full bg-emerald-500 rounded-full transition-all duration-700" style="width:10%"></div></div>
+        </div>
+
+        <div class="bg-white rounded-3xl shadow-2xl p-8">
+            <div class="flex justify-between items-start mb-6">
+                <div>
+                    <span id="stop-year" class="bg-emerald-100 px-6 py-2 rounded-3xl text-xl font-bold"></span>
+                    <h3 id="stop-title" class="text-4xl font-bold mt-3"></h3>
+                    <p id="stop-location" class="text-emerald-600 mt-1"></p>
+                </div>
+                <button onclick="nextStop()" id="next-btn" class="hidden bg-emerald-600 text-white px-10 py-4 rounded-3xl font-medium hover:bg-emerald-700 flex items-center gap-3">
+                    المحطة التالية <i class="fas fa-arrow-left"></i>
+                </button>
+            </div>
+
+            <!-- MEDIA GRID
+            ════════════════════════════════════════════════════════
+            كيف تضيفين الوسائط لكل محطة في قسم const stops أدناه:
+
+            كل محطة لها خاصية "media" وهي مصفوفة بعنصر أو عنصرين.
+
+            ✅ صورة:
+            { type:"image", src:"رابط الصورة", label:"عنوان" }
+
+            ✅ فيديو يوتيوب (أي صيغة: رابط عادي / قصير / embed / iframe كامل):
+            { type:"video", src:"https://youtu.be/VIDEO_ID", label:"عنوان" }
+
+            ✅ موقع أو مقال مضمّن يمكن التمرير فيه:
+            { type:"website", src:"https://example.com", label:"عنوان" }
+
+            مثال بعنصر واحد (يأخذ العرض الكامل):
+            media: [ { type:"video", src:"...", label:"فيديو" } ]
+
+            مثال بعنصرين (جنباً إلى جنب):
+            media: [
+              { type:"image",   src:"...", label:"صورة" },
+              { type:"website", src:"...", label:"مقال" }
+            ]
+            ════════════════════════════════════════════════════════ -->
+            <div id="media-grid" class="grid gap-8 mb-8"></div>
+
+            <div class="quran-box p-8 rounded-3xl mb-8">
+                <h4 id="verse-title" class="text-2xl font-bold text-amber-800 mb-4"></h4>
+                <p id="quran-verse" class="text-3xl leading-relaxed text-amber-900 font-semibold"></p>
+                <p id="quran-ref" class="text-right text-amber-700 mt-4 font-medium"></p>
+            </div>
+
+            <div id="questions-container" class="space-y-10"></div>
+
+            <button onclick="submitAnswers()" id="submit-answers-btn"
+                    class="w-full mt-10 bg-emerald-600 hover:bg-emerald-700 text-white text-2xl py-6 rounded-3xl font-bold">
+                حفظ  الإجابات
+            </button>
+        </div>
+    </div>
+
+    <!-- END SCREEN -->
+    <div id="end-screen" class="hidden max-w-4xl mx-auto px-6 py-12">
+        <div class="bg-gradient-to-br from-emerald-600 to-emerald-700 text-white rounded-3xl p-12 text-center">
+            <h2 class="text-5xl font-bold mb-4">تهانينا! 🎉</h2>
+            <p id="end-name" class="text-3xl mb-8"></p>
+            <div id="final-score" class="text-8xl font-bold"></div>
+            <p class="text-2xl opacity-90">من 20</p>
+            <div class="mt-12 bg-white/20 rounded-3xl p-8">
+                <h4 class="text-xl mb-6">لوحة الفائزين</h4>
+                <table class="w-full text-right" id="leaderboard-body"></table>
+            </div>
+            <button onclick="restartJourney()"
+                    class="mt-10 bg-white text-emerald-700 px-12 py-5 rounded-3xl font-bold text-xl flex items-center gap-3 mx-auto">
+                <i class="fas fa-redo"></i> ابدئي رحلة جديدة
+            </button>
+        </div>
+    </div>
+
+<script>
+const stops = [
+    {
+        id:1, year:"1971", location:"تأسيس الدولة - أبوظبي", title:"رؤية الشيخ زايد للبيئة",
+        media:[
+            { type:"image",   src:"https://pbs.twimg.com/media/DWeeva5XUAAiUne.png", label:"صورة " },
+            { type:"video",   src:"https://youtu.be/CiUJgnAHHTo?si=jpsV5Y0X8zbCGVMv", label:"فيديو المحطة" }
+        ],
+        quoteType:"قول الشيخ زايد", verse:"الحفاظ على البيئة واجب وطني وديني", ref:"الشيخ زايد بن سلطان آل نهيان",
+        questions:[
+            { id:1, text:"ما علاقة آية ﴿إِنِّي جَاعِلٌ فِي الْأَرْضِ خَلِيفَةً﴾ برؤية الشيخ زايد؟",
+              options:["الإنسان خليفة يعمّر الأرض بالخير والاستدامة","الآية تدعو إلى التوسع العمراني السريع","الخلافة تعني السيطرة على الموارد الطبيعية","الآية تشير إلى القيادة السياسية فقط"], correct:0 },
+            { id:2, text:"متى بدأ الشيخ زايد مشاريع زراعة المانغروف؟",
+              options:["منذ تأسيس الدولة في السبعينيات","بعد مؤتمر كيوتو للمناخ عام 1997","في مطلع الألفية الثالثة 2001","إثر اكتشاف النفط في الستينيات"], correct:0 }
+        ]
+    },
+    {
+        id:2, year:"1970s-80s", location:"ساحل الإمارات", title:"زراعة المانغروف",
+        media:[
+            { type:"image", src:"https://media.alittihad.ae/store/archive/image/2024/7/25/b377c03a-7cb2-4535-990b-4f47c6ba97fb.jpg?width=600", label:"غابة المانغروف في جزيرة الجبيل - أبوظبي (الامارات تواجه تغير المناخ بزراعة المانغروف)" },
+            { type:"video", src:"https://youtu.be/G7HWgMqud3U?si=fESm8yMDxKAEZOnd", label:"فيديو المحطة" }
+        ],
+        quoteType:"آية قرآنية", verse:"وَلَا تُفْسِدُوا فِي الْأَرْضِ بَعْدَ إِصْلَاحِهَا", ref:"سورة الأعراف: 56",
+        questions:[
+            { id:1, text:"كيف ترتبط الآية بزراعة المانغروف؟",
+              options:["تحث على إصلاح الأرض وصون التوازن البيئي","تُجيز استغلال الموارد الساحلية للتنمية","تدعو إلى تطوير المناطق الساحلية سياحياً","تنهى عن الزراعة في المناطق الملحية"], correct:0 },
+            { id:2, text:"ما الفائدة الرئيسية لأشجار المانغروف؟",
+              options:["امتصاص الكربون وحماية السواحل من التآكل","توفير الخشب الصالح للبناء والصناعة","تنقية مياه الصرف الصحي الساحلية","تقليل حدة الرياح عن المناطق السكنية"], correct:0 }
+        ]
+    },
+    {
+        id:3, year:"2006", location:"أبوظبي", title:"إنشاء مدينة مصدر",
+        media:[
+            { type:"image",   src:"https://imgv2-1-f.scribdassets.com/img/document/546385804/original/ce6bab1ebe/1?v=1", label:"صورة " },
+            { type:"video",   src:"https://youtu.be/_AyjOR86VgQ?si=AGp8H_3Fcy0VkLep", label:"فيديو المحطة" }
+        ],
+        quoteType:"قول الشيخ محمد بن راشد", verse:"الاستدامة هي مستقبل الإمارات", ref:"سمو الشيخ محمد بن راشد آل مكتوم",
+        questions:[
+            { id:1, text:"ما علاقة مدينة مصدر برؤية الخلافة في الأرض؟",
+              options:["نموذج حديث لإعمار الأرض وفق مبدأ الاستدامة","مركز بحثي متخصص في استخراج الطاقة النووية","منطقة صناعية تعتمد على الوقود الأحفوري بكفاءة","مدينة ذكية تُركّز على التكنولوجيا الرقمية"], correct:0 },
+            { id:2, text:"ما الهدف الرئيسي لمدينة مصدر؟",
+              options:["أن تكون مدينة خالية من الكربون ومستدامة بالكامل","أن تكون عاصمة مالية بديلة لأبوظبي","أن تستضيف أكبر مراكز البيانات في المنطقة","أن تُحقق الاكتفاء الذاتي الغذائي للإمارات"], correct:0 }
+        ]
+    },
+    {
+        id:4, year:"2008-2010s", location:"دبي وأبوظبي", title:"مبادرات الطاقة المتجددة",
+        media:[
+            { type:"video",   src:"https://youtu.be/0OBpful6x90?si=iV6bUtzKGxFNbsoZ", label:"الطاقة الشمسية" },
+            { type:"website", src:"https://u.ae/ar/information-and-services/environment-and-energy/water-and-energy/types-of-energy-sources/solar-energy", label:"اقرئي عن مشروع الطاقة الشمسية" }
+        ],
+        quoteType:"آية قرآنية", verse:"وَسَخَّرَ لَكُم مَّا فِي السَّمَاوَاتِ وَمَا فِي الْأَرْضِ جَمِيعًا مِّنْهُ", ref:"سورة الجاثية: 13 ",
+        questions:[
+            { id:1, text:"كيف ترتبط الطاقة الشمسية بالاستدامة في الإمارات؟",
+              options:["توفر طاقة نظيفة وتُقلل الاعتماد على الوقود الأحفوري","تُعزز الاستقلالية الاقتصادية عن أسواق النفط العالمية","تُوفر فرص عمل للكوادر الهندسية الإماراتية","تُخفض تكاليف التبريد في المباني الحكومية"], correct:0 },
+            { id:2, text:"ما أحد أكبر مشاريع الطاقة الشمسية في الإمارات؟",
+              options:["مجمع محمد بن راشد آل مكتوم للطاقة الشمسية","محطة براكة للطاقة النووية السلمية","مشروع الرياح البحري قبالة ساحل الفجيرة","مجمع الطاقة الشمسية في منطقة العين"], correct:0 }
+        ]
+    },
+    {
+        id:5, year:"2015-2020", location:"جميع الإمارات", title:"استراتيجية الإمارات للطاقة 2050",
+        media:[
+            { type:"website", src:"https://u.ae/ar/about-the-uae/strategies-initiatives-and-awards/strategies-plans-and-visions/environment-and-energy/uae-energy-strategy-2050", label:"اقرئي الاستراتيجية الرسمية" }
+        ],
+        quoteType:"قول الشيخ محمد بن زايد", verse:"نحن ملتزمون بمستقبل أخضر ومستدام", ref:"سمو الشيخ محمد بن زايد آل نهيان",
+        questions:[
+            { id:1, text:"ما هدف استراتيجية الطاقة 2050؟",
+              options:["رفع حصة الطاقة النظيفة إلى 44% من مزيج الطاقة","تحقيق الاكتفاء الكامل من الطاقة النووية بحلول 2040","تصدير الفائض من الطاقة المتجددة لدول الجوار","إلغاء الاعتماد على الغاز الطبيعي كلياً بحلول 2035"], correct:0 },
+            { id:2, text:"ما أهمية هذه الاستراتيجية للإمارات؟",
+              options:["تحقيق التوازن بين النمو الاقتصادي وحماية البيئة","تعزيز مكانة الإمارات كمُصدِّر رئيسي للهيدروجين","خفض الاعتماد على العمالة الوافدة في قطاع الطاقة","تطوير البنية التحتية للشبكة الكهربائية الذكية"], correct:0 }
+        ]
+    },
+    {
+        id:6, year:"2023", location:"دبي", title: " عام الاستدامة",
+        media:[
+            { type:"image", src:"https://www.moj.gov.ae/Content/Generated/Thumbnails/59ad5a4b_12c1x1680wTransparent.jpg", label:"عام الاستدامة" },
+            { type:"video", src:"https://youtu.be/z3sv528Z5Ks?si=W4MPPmLBsC_cf05R", label:"فيديو المحطة" }
+        ],
+        quoteType:"آية قرآنية", verse:"هُوَ أَنشَأَكُم مِّنَ الْأَرْضِ وَاسْتَعْمَرَكُمْ فِيهَا", ref:"سورة هود: 61",
+        questions:[
+            { id:1, text:"كيف ترتبط الآية بعام الاستدامة؟",
+              options:["الله استخلفنا لنعمّر الأرض ونحافظ عليها","تُنظّم قواعد التغذية الصحية للمواطنين","تُحدد حصص استهلاك المياه في شهر رمضان","تدعو إلى تشجيع الزراعة العضوية المحلية"], correct:0 },
+            { id:2, text:"ما الهدف الرئيسي من إعلان عام الاستدامة؟",
+              options:["تعزيز الوعي البيئي وترسيخه في المجتمع الإماراتي","استقطاب الاستثمارات الخضراء الأجنبية للإمارات","الإعداد للترشح لاستضافة مؤتمر المناخ COP28","إطلاق منظومة تشريعية بيئية شاملة في الدولة"], correct:0 }
+        ]
+    },
+    {
+        id:7, year:"2023", location:"إكسبو سيتي دبي", title:"استضافة COP28",
+        media:[
+             { type:"image", src:"https://earth.org/wp-content/uploads/2023/12/Untitled-683-x-1024-px-96-1200x900.jpg", label:"COP28" },
+            { type:"video", src:"https://youtu.be/I5KVDQtPxQ0?si=sD0P4qRHXxKVngCn", label:"فيديو المحطة" }
+        ],
+        quoteType:"إنجاز وطني", verse:"اتفاق الإمارات (UAE Consensus) للانتقال عن الوقود الأحفوري", ref:"مؤتمر الأطراف COP28",
+        questions:[
+            { id:1, text:"ما أبرز إنجاز تحقق في مؤتمر COP28؟",
+              options:["الاتفاق التاريخي على الانتقال التدريجي عن الوقود الأحفوري","إطلاق صندوق دولي لتمويل الطاقة النووية النظيفة","توقيع معاهدة دولية لحماية التنوع البيولوجي البحري","إنشاء هيئة أممية جديدة لرصد انبعاثات الميثان"], correct:0 },
+            { id:2, text:"أين أُقيمت فعاليات COP28؟",
+              options:["إكسبو سيتي دبي - الإمارات العربية المتحدة","مركز دبي المالي العالمي في قلب المدينة","جزيرة السعديات الثقافية في أبوظبي","المدينة المستدامة في دبي"], correct:0 }
+        ]
+    },
+    {
+        id:8, year:"2024-2025", location:"جميع الإمارات", title:"زراعة 100 مليون مانغروف",
+        media:[
+            { type:"image",   src:"https://www.emaratalyoum.com/polopoly_fs/1.1807844.1702158697!/image/image.jpg", label:"مبادرة المانغروف" },
+            { type:"video", src:"https://youtu.be/IMvNtrV3cGA?si=P9d9X-_V00tSs1ky", label:"اقرئي عن مبادرة المانغروف" }
+        ],
+        quoteType:"آية قرآنية", verse:"وَالْأَرْضَ مَدَدْنَاهَا وَأَلْقَيْنَا فِيهَا رَوَاسِيَ", ref:"سورة الحجر: 19",
+        questions:[
+            { id:1, text:"ما الهدف البيئي الرئيسي لزراعة 100 مليون مانغروف؟",
+              options:["امتصاص الكربون وتعزيز حماية السواحل الإماراتية","توفير بيئة طبيعية لتربية الأسماك التجارية","إنشاء ممرات خضراء بين المدن الساحلية","استعادة التوازن البيولوجي في خور دبي"], correct:0 },
+            { id:2, text:"كم بلغ الهدف الأولي لمبادرة المانغروف قبل التوسع؟",
+              options:["30 مليون شجرة بحلول عام 2030","10 ملايين شجرة بحلول عام 2025","50 مليون شجرة على مدى عقد كامل","مليون شجرة سنوياً في كل إمارة"], correct:0 }
+        ]
+    },
+    {
+        id:9, year:"2026", location:"أبوظبي", title:"أسبوع أبوظبي للاستدامة (ADSW 2026)",
+        media:[
+            { type:"image",   src:"https://img.youm7.com/large/202601131118501850_20659.jpg", label:"مبادرة المانغروف" },
+            { type:"video", src:"https://youtu.be/UFqdN7iG2vc?si=Pt8H6jGjOx5MHwa9", label:" أسبوع أبوظبي للاستدامة" }
+        ],
+        quoteType:"قول قيادي", verse:"الاستدامة رحلة مستمرة نحو المستقبل", ref:"رعاية صاحب السمو الشيخ محمد بن زايد",
+        questions:[
+            { id:1, text:"ما الدور العالمي لأسبوع أبوظبي للاستدامة؟",
+              options:["منصة دولية لتبادل الحلول والسياسات المستدامة","معرض تجاري متخصص في تقنيات الطاقة الشمسية","مؤتمر حكومي لمراجعة اتفاقيات المناخ الدولية","ملتقى أكاديمي للباحثين في العلوم البيئية"], correct:0 },
+            { id:2, text:"تحت رعاية من يُنعقد أسبوع أبوظبي للاستدامة؟",
+              options:["صاحب السمو الشيخ محمد بن زايد آل نهيان","المنظمة الدولية للطاقة المتجددة (إيرينا)","برنامج الأمم المتحدة للبيئة (يونيب)","مجلس الطاقة العالمي بالتعاون مع الإمارات"], correct:0 }
+        ]
+    },
+    {
+        id:10, year:"1971-2026", location:"دولة الإمارات", title:"رحلة الاستدامة.. من الرؤية إلى الإنجاز",
+        media:[
+            { type:"image", src:"https://media.ngalarabiya.com/wp-content/uploads/2013/12/ARTICLEOTHER1_img_16_12_2013_02_58_27_pm-1.jpg?format=jpg&preset=w1400https://www.mediaoffice.abudhabi/ar/channel/year-of-sustainability/", label:"الإمارات - رؤية وإنجاز" },
+            { type:"video", src:"hhttps://youtu.be/5ndm7ZCY2HQ?si=XbCBLPZDnPFKzeRT", label:"فيديو ختامي" }
+        ],
+        quoteType:"آية ختامية", verse:"إِنَّ اللَّهَ لَا يُغَيِّرُ مَا بِقَوْمٍ حَتَّىٰ يُغَيِّرُوا مَا بِأَنفُسِهِمْ", ref:"سورة الرعد: 11",
+        questions:[
+            { id:1, text:"ما الرسالة التي تحملها الآية للأجيال القادمة؟",
+              options:["التغيير الحقيقي يبدأ من الإنسان ليُعمّر الأرض","النهضة تتحقق بالتخطيط الحكومي والإرادة السياسية","الحفاظ على البيئة مسؤولية المنظمات الدولية","التقدم يستلزم الموازنة بين التراث والحداثة"], correct:0 },
+            { id:2, text:" ابحثي في محرك البحث : ما أبرز التزام بيئي أعلنته الإمارات حتى 2026؟ ",
+              options:["تحقيق الحياد المناخي وصافي صفر انبعاثات بحلول 2050","خفض انبعاثات الكربون بنسبة 75% بحلول عام 2035","إيقاف إنتاج النفط تدريجياً بحلول منتصف القرن","تحويل 90% من النفايات البلدية إلى طاقة بحلول 2040"], correct:0 }
+        ]
+    }
+];
+
+/* ── YouTube ID extractor ── */
+function extractYouTubeId(input) {
+    if (!input) return null;
+    input = input.trim();
+    const iframeSrc = input.match(/src=["']([^"']+)["']/);
+    if (iframeSrc) input = iframeSrc[1];
+    const embed = input.match(/youtube(?:-nocookie)?\.com\/embed\/([a-zA-Z0-9_-]{11})/);
+    if (embed) return embed[1];
+    const watch = input.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
+    if (watch) return watch[1];
+    const short = input.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
+    if (short) return short[1];
+    if (/^[a-zA-Z0-9_-]{11}$/.test(input)) return input;
+    return null;
+}
+
+/* ── Media renderer ── */
+function renderMedia(item) {
+    const icons = { image:"fa-camera", video:"fa-video", website:"fa-globe" };
+    const label = item.label || item.type;
+    const icon  = icons[item.type] || "fa-photo-film";
+    let body = "";
+
+    if (item.type === "image") {
+        body = `<div class="media-wrapper aspect-video">
+            <img src="${item.src}" alt="${label}" loading="lazy"
+                 onerror="this.src='https://picsum.photos/800/450'">
+        </div>`;
+
+    } else if (item.type === "video") {
+        const vid = extractYouTubeId(item.src);
+        if (vid) {
+            const src = `https://www.youtube-nocookie.com/embed/${vid}?rel=0&modestbranding=1`;
+            body = `<div style="position:relative" class="aspect-video">
+                <div class="media-wrapper" style="position:absolute;inset:0">
+                    <iframe src="${src}"
+                        allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture"
+                        allowfullscreen></iframe>
+                </div>
+                <div id="vf-${vid}" style="display:none;position:absolute;inset:0">
+                    <div class="media-fallback">
+                        <i class="fas fa-exclamation-circle" style="font-size:2rem;color:#f59e0b"></i>
+                        <p>هذا الفيديو لا يسمح بالتضمين</p>
+                        <a href="https://www.youtube.com/watch?v=${vid}" target="_blank">
+                            <i class="fab fa-youtube"></i> افتحي الفيديو
+                        </a>
+                    </div>
+                </div>
+            </div>`;
+        } else {
+            body = `<div class="media-fallback aspect-video">
+                <i class="fas fa-video-slash" style="font-size:2rem;color:#10b981"></i>
+                <p>لم يتم تحديد فيديو بعد</p>
+            </div>`;
+        }
+
+    } else if (item.type === "website") {
+        body = `<div class="media-wrapper" style="height:360px">
+            <iframe src="${item.src}"
+                sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+                loading="lazy"></iframe>
+        </div>`;
+    }
+
+    return `<div>
+        <div class="media-type-badge"><i class="fas ${icon}"></i> ${label}</div>
+        ${body}
+    </div>`;
+}
+
+/* ── Game state ── */
+let currentStopIndex = 0, studentName = "", totalScore = 0, userAnswers = [];
+
+function shuffleArray(arr) {
+    let a = [...arr];
+    for (let i = a.length-1; i>0; i--) {
+        const j = Math.floor(Math.random()*(i+1));
+        [a[i],a[j]] = [a[j],a[i]];
+    }
+    return a;
+}
+
+function startJourney() {
+    const name = document.getElementById("student-name").value.trim();
+    if (!name) return alert("يرجى كتابة اسمك");
+    studentName = name;
+    document.getElementById("start-screen").classList.add("hidden");
+    document.getElementById("journey-screen").classList.remove("hidden");
+    currentStopIndex = 0; userAnswers = []; totalScore = 0;
+    loadStop();
+}
+
+function loadStop() {
+    const stop = stops[currentStopIndex];
+    document.getElementById("current-stop-num").textContent = stop.id;
+    document.getElementById("progress-fill").style.width = `${(currentStopIndex+1)*10}%`;
+    document.getElementById("stop-year").textContent     = stop.year;
+    document.getElementById("stop-title").textContent    = stop.title;
+    document.getElementById("stop-location").textContent = stop.location;
+
+    /* Media */
+    const grid = document.getElementById("media-grid");
+    const count = stop.media.length;
+    grid.style.gridTemplateColumns = count === 1 ? "1fr" : "repeat(2,1fr)";
+    grid.innerHTML = stop.media.map(renderMedia).join("");
+
+    /* Quote */
+    document.getElementById("verse-title").textContent = stop.quoteType;
+    document.getElementById("quran-verse").innerHTML   = `﴿ ${stop.verse} ﴾`;
+    document.getElementById("quran-ref").textContent   = stop.ref;
+
+    /* Questions */
+    const container = document.getElementById("questions-container");
+    container.innerHTML = "";
+    stop.questions.forEach(q => {
+        const shuffled = shuffleArray(q.options);
+        q.currentCorrect   = shuffled.indexOf(q.options[q.correct]);
+        q.shuffledOptions  = shuffled;
+
+        let html = `<div class="border-2 border-emerald-200 rounded-3xl p-6" id="qblock-${q.id}">
+            <p class="font-medium text-xl mb-5">${q.id}. ${q.text}</p>
+            <div class="space-y-3">`;
+        shuffled.forEach((opt,i) => {
+            html += `<label class="mcq-option flex items-center gap-4 px-6 py-5 bg-white border-2 border-emerald-100 rounded-3xl cursor-pointer hover:border-emerald-400" id="opt-${q.id}-${i}">
+                <input type="radio" name="q${q.id}" value="${i}" class="accent-emerald-600 w-6 h-6">
+                <span class="text-lg">${opt}</span>
+            </label>`;
+        });
+        html += `</div></div>`;
+        container.innerHTML += html;
+    });
+
+    document.getElementById("submit-answers-btn").classList.remove("hidden");
+    document.getElementById("next-btn").classList.add("hidden");
+    window.scrollTo({ top:0, behavior:"smooth" });
+}
+
+function submitAnswers() {
+    const stop = stops[currentStopIndex];
+    let allAnswered = true;
+
+    stop.questions.forEach(q => {
+        const sel = document.querySelector(`input[name="q${q.id}"]:checked`);
+        if (!sel) { allAnswered = false; return; }
+        const idx = parseInt(sel.value);
+        const ok  = idx === q.currentCorrect;
+        if (ok) totalScore++;
+        userAnswers.push({ stopId:stop.id, questionId:q.id, correct:ok });
+
+         
+    });
+
+    if (!allAnswered) return alert("يرجى الإجابة على جميع الأسئلة");
+    document.getElementById("submit-answers-btn").classList.add("hidden");
+    document.getElementById("next-btn").classList.remove("hidden");
+}
+
+function nextStop() {
+    currentStopIndex++;
+    currentStopIndex >= stops.length ? showEnd() : loadStop();
+}
+
+function showEnd() {
+    document.getElementById("journey-screen").classList.add("hidden");
+    document.getElementById("end-screen").classList.remove("hidden");
+    document.getElementById("end-name").innerHTML   = `الطالبة: <b>${studentName}</b>`;
+    document.getElementById("final-score").innerHTML = `${totalScore} <span class="text-4xl">🌟</span>`;
+    let scores = JSON.parse(localStorage.getItem("uaeSustainabilityScores")||"[]");
+    scores.unshift({ name:studentName, score:totalScore, date:new Date().toLocaleDateString("ar-SA") });
+    localStorage.setItem("uaeSustainabilityScores", JSON.stringify(scores.slice(0,10)));
+    const tbody = document.getElementById("leaderboard-body");
+    tbody.innerHTML = scores.map((s,i) =>
+        `<tr class="border-b border-white/30">
+            <td class="py-3">${i+1}</td><td class="py-3">${s.name}</td>
+            <td class="py-3 font-bold">${s.score}/20</td><td class="py-3 text-sm">${s.date}</td>
+        </tr>`).join("");
+}
+
+function restartJourney() {
+    totalScore = 0; userAnswers = [];
+    document.getElementById("end-screen").classList.add("hidden");
+    document.getElementById("start-screen").classList.remove("hidden");
+    document.getElementById("student-name").value = "";
+}
+
+/* YouTube embed-blocked detection */
+window.addEventListener("message", e => {
+    if (!["https://www.youtube-nocookie.com","https://www.youtube.com"].includes(e.origin)) return;
+    try {
+        const d = JSON.parse(e.data);
+        if (d.event==="onError"||d.info===150||d.info===101) {
+            document.querySelectorAll("iframe").forEach(f => {
+                const vid = (f.src.match(/embed\/([a-zA-Z0-9_-]{11})/)||[])[1];
+                if (vid) {
+                    const fb = document.getElementById("vf-"+vid);
+                    if (fb) { f.style.display="none"; fb.style.display="block"; }
+                }
+            });
+        }
+    } catch(e) {}
+});
+</script>
+</body>
+</html>
